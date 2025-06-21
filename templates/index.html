@@ -8,71 +8,77 @@
   </head>
   <body class="bg-dark">
     <div class="container">
-        <div class ="row">
-            <div class="card" style="width: 100%; height: 100%; margin-top: 50px;">
-              <div class="card-header" style="text-align: center;">
-                <h1>House Price Prediction</h1>   
-            </div>
-            <div class="card-body">
-              <form method ="post" accept-charset="utf-8">
-                <div class="row">
-                  <div class="col-md-6 form group" style="text-align: center;">
-                    <label><b>Select location</b></label>
-                    <select class="selectpicker form-control" id="location" name="location" required="1">
-                      {% for location in locations %}
-                        <option value="{{location}}">{{location}}</option>
-                      {% endfor %}
-                    </select>
+        <div class="row">
+            <div class="card" style="width: 150%; height: 150%; margin-top: 50px;">
+              <div class="card-header" style="text-align: center">
+                <h1>House Price Prediction</h1> 
+              </div>
+              <div class="card-body">
+                <form id="prediction-form" method="POST" accept-charset="utf-8">
+                  <div class="row">
+                    <div class="col-md-6 form-group" style="text-align: center;">
+                      <label><b>Select location</b></label>
+                      <select class="form-control" id="location" name="location" required>
+                        {% for location in locations %}
+                          <option value="{{ location }}">{{ location }}</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                    <div class="col-md-6 form-group" style="text-align: center;">
+                      <label><b>Enter BHK</b></label>
+                      <input type="text" class="form-control" id="bhk" name="bhk" placeholder="Enter BHK" required>
+                    </div>
+                    <div class="col-md-6 form-group" style="text-align: center;">
+                      <label><b>Enter Number of Bathrooms</b></label>
+                      <input type="text" class="form-control" id="bath" name="bath" placeholder="Enter Number of Bathrooms" required>
+                    </div>
+                    <div class="col-md-6 form-group" style="text-align: center;">
+                      <label><b>Enter Square Feet</b></label>
+                      <input type="text" class="form-control" id="total_sqft" name="total_sqft" placeholder="Enter Square Feet" required>
+                    </div>
+                    <div class="col-md-12 form-group mt-3">
+                      <button type="submit" class="btn btn-primary form-control">Predict Price</button>
+                    </div>
                   </div>
-                  <div class="col-md-6 form group" style="text-align: center;">
-                    <label><b>Enter BHK</b></label>
-                    <input type="text" class="form-control" id="bhk" name="bhk" placeholder="Enter BHK" >
-                  </div>
-                  <div class="col-md-6 form group" style="text-align: center;">
-                    <label><b>Enter Number of Bathrooms</b></label>
-                    <input type="text" class="form-control" id="bath" name="bath" placeholder="Enter Number of Bathrooms" >
-                  </div>
-                  <div class="col-md-6 form group" style="text-align: center;">
-                    <label><b>Enter Square Feet</b></label>
-                    <input type="text" class="form-control" id="total_sqft" name="total_sqft" placeholder="Enter Square Feet" >
-                  </div>
-                  <div class="col-md-12 form group">
-                    <button class="btn btn-primary form form-control" onclick="send_data()">Predict Price</button>
-                  </div>
-                 </div>
-              </form>
-              <br>
-              <div class="col-md-12" style="text-align: center;">
-                <h3><div id="prediction"></div></h3 >
+                </form>
+                <br>
+                <div class="col-md-12" style="text-align: center;">
+                  <h3><div id="prediction"></div></h3>
+                </div>
               </div>
             </div>
         </div>
     </div>
+
     <script>
-      function form_handler(event){
-        event.preventDefault();
-      }
-      function send_data() {
-    var form = document.querySelector('form');
-    form.addEventListener("submit", function(event) {
-        event.preventDefault(); // Prevent default form submission
-        var fd = new FormData(form);
-        
+      let formatter = new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+      });
+
+      document.getElementById('prediction-form').addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent the form from submitting normally
+
+        var form = new FormData(this);
         var xhr = new XMLHttpRequest();
         xhr.open('POST', '/predict', true);
-        document.getElementById('prediction').innerHTML = "Wait Predicting Price!..."
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState == XMLHttpRequest.DONE) {
-                document.getElementById('prediction').innerHTML = "Prediction: Rs" + xhr.responseText;
-                console.log(xhr)
-            }
-        };
-        xhr.onload = function() {};
-        xhr.send(fd);
-    });
-}
+        document.getElementById('prediction').innerHTML = "Please wait... Predicting price..."; // Show loading message
 
-    </script>    
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState === XMLHttpRequest.DONE) {
+            if (xhr.status === 200) {
+              var response = parseFloat(xhr.responseText);
+              document.getElementById('prediction').innerHTML = "Predicted Price: " + formatter.format(response); // Show the prediction
+            } else {
+              document.getElementById('prediction').innerHTML = "Error: " + xhr.responseText;
+            }
+          }
+        };
+
+        xhr.send(form); // Send the form data to the server
+      });
+    </script>
+
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
