@@ -3,6 +3,7 @@ import pickle
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
+import os
 
 app = Flask(__name__)
 
@@ -33,7 +34,6 @@ def predict():
         if not location or not bhk or not bath or not sqft:
             return "All fields are required."
 
-        # Ensure that bhk and bath are integers and sqft is a float
         try:
             bhk = int(bhk)
             bath = int(bath)
@@ -41,7 +41,6 @@ def predict():
         except ValueError:
             return "Please enter valid numbers for BHK, Bathrooms, and Square Feet."
 
-        # Check if the location is valid
         if location not in locations:
             return "Location not found in the dataset. Please choose a valid location."
 
@@ -49,14 +48,16 @@ def predict():
         location_encoded = le.transform([location])[0]
 
         # Prepare the input data
-        input_data = pd.DataFrame([[location_encoded, sqft, bath, bhk]], columns=['location', 'total_sqft', 'bath', 'bhk'])
+        input_data = pd.DataFrame([[location_encoded, sqft, bath, bhk]],
+                                  columns=['location', 'total_sqft', 'bath', 'bhk'])
 
         # Predict the price
-        prediction = pipe.predict(input_data)[0] * 1e5  # Scale the result by 100,000
-        return str(np.round(prediction, 2))  # Return prediction as a string
+        prediction = pipe.predict(input_data)[0] * 1e5
+        return str(np.round(prediction, 2))
 
     except Exception as e:
-        return f"Error: {str(e)}"  # Return any error message encountered
+        return f"Error: {str(e)}"
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+    port = int(os.environ.get("PORT", 5000))  # Use PORT from Render
+    app.run(host='0.0.0.0', port=port)
