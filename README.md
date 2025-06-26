@@ -1,4 +1,4 @@
-# 🏠 House Price Prediction – Bengaluru
+# 🏠 House Price Prediction
 
 A machine learning-powered web app that predicts house prices in Bengaluru based on features like location, square footage, number of bedrooms, and bathrooms. This project includes data preprocessing, model training (Ridge Regression), and a Flask-based interface.
 
